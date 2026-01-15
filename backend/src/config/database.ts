@@ -7,6 +7,9 @@ export const connectDB = async () => {
     }
 
     const uri = process.env.MONGODB_URI as string;
+    if (!uri) {
+        throw new Error("Please provide a valid MongoDB URI");
+    }
 
     try {
         await mongoose.connect(uri);
