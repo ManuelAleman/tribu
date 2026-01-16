@@ -1,8 +1,8 @@
 import mongoose, { Schema, type Document } from "mongoose";
 
 export interface IChat extends Document {
-    participants: Schema.Types.ObjectId[];
-    lastMessage?: Schema.Types.ObjectId;
+    participants: mongoose.Types.ObjectId[];
+    lastMessage?: mongoose.Types.ObjectId;
     lastMessageAt?: Date;
     createdAt: Date;
     updatedAt: Date;
