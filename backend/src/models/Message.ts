@@ -1,8 +1,8 @@
 import mongoose, { Schema, type Document } from "mongoose";
 
 export interface IMessage extends Document {
-    chat: Schema.Types.ObjectId;
-    sender: Schema.Types.ObjectId;
+    chat: mongoose.Types.ObjectId;
+    sender: mongoose.Types.ObjectId;
     text: string;
     createdAt: Date;
     updatedAt: Date;
