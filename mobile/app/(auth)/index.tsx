@@ -10,6 +10,8 @@ const { width, height } = Dimensions.get('window')
 
 const AuthScreen = () => {
     const { handleSocialAuth, loadingStrategy } = useAuthSocialAuth();
+    const isLoading = loadingStrategy !== null;
+
     const { resolvedTheme } = useTheme();
     const themeColors = colors[resolvedTheme];
     const isDark = resolvedTheme === 'dark';
@@ -85,8 +87,10 @@ const AuthScreen = () => {
                                 shadowRadius: 8,
                                 elevation: 3,
                             }}
-                            disabled={loadingStrategy === "oauth_google"}
-                            onPress={() => handleSocialAuth("oauth_google")}
+                            disabled={isLoading}
+                            accessibilityRole='button'
+                            accessibilityLabel='Continue with Google'
+                            onPress={() => !isLoading && handleSocialAuth("oauth_google")}
                         >
                             {loadingStrategy === "oauth_google" ? (
                                 <ActivityIndicator size="small" color={themeColors.primary} />
@@ -117,8 +121,10 @@ const AuthScreen = () => {
                                 shadowRadius: 8,
                                 elevation: 3,
                             }}
-                            disabled={loadingStrategy === "oauth_apple"}
-                            onPress={() => handleSocialAuth("oauth_apple")}
+                            disabled={isLoading}
+                            accessibilityRole='button'
+                            accessibilityLabel='Continue with Apple'
+                            onPress={() => !isLoading && handleSocialAuth("oauth_apple")}
                         >
                             {loadingStrategy === "oauth_apple" ? (
                                 <ActivityIndicator size="small" color={isDark ? '#000000' : '#FFFFFF'} />
