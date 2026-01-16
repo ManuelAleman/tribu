@@ -32,12 +32,7 @@ const AuthScreen = () => {
             />
 
             <SafeAreaView className='flex-1'>
-                <View className="items-center pt-8">
-                    <Image
-                        source={require("../../assets/images/tribu-logo.png")}
-                        style={{ width: 80, height: 80 }}
-                        contentFit="contain"
-                    />
+                <View className="items-center pt-20">
                     <Text className="text-2xl font-bold text-primary tracking-widest uppercase mt-1">
                         Tribu
                     </Text>

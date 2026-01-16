@@ -31,23 +31,29 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
         colorScheme === "dark" ? "dark" : "light";
 
     useEffect(() => {
+        let isMounted = true;
         (async () => {
-            const stored = await AsyncStorage.getItem(STORAGE_KEY);
+            try {
+                const stored = await AsyncStorage.getItem(STORAGE_KEY);
 
-            if (
-                stored === "light" ||
-                stored === "dark" ||
-                stored === "system"
-            ) {
-                setThemeState(stored);
-                setColorScheme(stored);
-            } else {
-                setColorScheme("system");
+                if (
+                    stored === "light" ||
+                    stored === "dark" ||
+                    stored === "system"
+                ) {
+                    setThemeState(stored);
+                    setColorScheme(stored);
+                } else {
+                    setColorScheme("system");
+                }
+            } finally {
+                if (isMounted) setIsLoading(false);
             }
-
-            setIsLoading(false);
         })();
-    }, [setColorScheme]);
+        return () => {
+            isMounted = false;
+        };
+    }, [setColorScheme, setThemeState, setIsLoading]);
 
     const setTheme = useCallback(
         async (newTheme: ThemePreference) => {
