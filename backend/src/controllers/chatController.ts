@@ -16,11 +16,10 @@ export async function getChats(req: AuthRequest, res: Response, next: NextFuncti
 
             return {
                 _id: chat._id,
-                participant: otherParticipant,
+                participant: otherParticipant ?? null,
                 lastMessage: chat.lastMessage,
                 lastMessageAt: chat.lastMessageAt,
                 createdAt: chat.createdAt,
-                updatedAt: chat.updatedAt
             }
         })
 
@@ -34,6 +33,14 @@ export async function getOrCreateChat(req: AuthRequest, res: Response, next: Nex
     try {
         const userId = req.userId;
         const { participantId } = req.params;
+
+        if (!participantId) {
+            return res.status(400).json({ message: "Participant ID is required" });
+        }
+
+        if (participantId === userId) {
+            return res.status(400).json({ message: "Participant ID cannot be the same as the user ID" });
+        }
 
         let chat = await Chat.findOne({
             participants: { $all: [userId, participantId] },
