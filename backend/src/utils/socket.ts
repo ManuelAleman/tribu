@@ -5,10 +5,6 @@ import { Message } from "../models/Message";
 import { Chat } from "../models/Chat";
 import { User } from "../models/User";
 
-interface SocketWithUserId extends Socket {
-    userId: string;
-}
-
 export const onlineUsers: Map<string, Set<string>> = new Map();
 
 export const initializeSocket = (httpServer: HttpServer) => {
@@ -37,7 +33,7 @@ export const initializeSocket = (httpServer: HttpServer) => {
                 return next(new Error("User not found"));
             }
 
-            (socket as SocketWithUserId).userId = user._id.toString();
+            socket.data.userId = user._id.toString();
             next();
 
         } catch (error) {
@@ -46,7 +42,7 @@ export const initializeSocket = (httpServer: HttpServer) => {
     });
 
     io.on("connection", (socket) => {
-        const userId = (socket as SocketWithUserId).userId;
+        const userId = socket.data.userId;
 
         socket.emit("online-users", { userIds: Array.from(onlineUsers.keys()) });
 
@@ -58,8 +54,23 @@ export const initializeSocket = (httpServer: HttpServer) => {
 
         socket.join(`user:${userId}`);
 
-        socket.on("join-chat", (chatId: string) => {
-            socket.join(`chat:${chatId}`);
+        socket.on("join-chat", async (chatId: string) => {
+            try {
+                const allowed = await Chat.exists({ _id: chatId, participants: userId });
+                if (!allowed) {
+                    socket.emit("socket-error", {
+                        message: "Chat not found"
+                    })
+                    return;
+                }
+                socket.join(`chat:${chatId}`);
+            } catch (error) {
+                socket.emit("socket-error", {
+                    message: "Chat not found"
+                })
+                return;
+            }
+
         });
 
         socket.on("leave-chat", (chatId: string) => {
