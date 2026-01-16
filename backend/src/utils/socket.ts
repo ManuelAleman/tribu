@@ -9,7 +9,7 @@ interface SocketWithUserId extends Socket {
     userId: string;
 }
 
-export const onlineUsers: Map<string, string> = new Map()
+export const onlineUsers: Map<string, Set<string>> = new Map();
 
 export const initializeSocket = (httpServer: HttpServer) => {
     const allowedOrigins = [
@@ -50,7 +50,9 @@ export const initializeSocket = (httpServer: HttpServer) => {
 
         socket.emit("online-users", { userIds: Array.from(onlineUsers.keys()) });
 
-        onlineUsers.set(userId, socket.id);
+        const socketIds = onlineUsers.get(userId) ?? new Set<string>();
+        socketIds.add(socket.id);
+        onlineUsers.set(userId, socketIds);
 
         socket.broadcast.emit("user-online", { userId });
 
@@ -109,8 +111,14 @@ export const initializeSocket = (httpServer: HttpServer) => {
         });
 
         socket.on("disconnect", () => {
-            onlineUsers.delete(userId);
-            socket.broadcast.emit("user-offline", { userId });
+            const socketIds = onlineUsers.get(userId);
+            if (!socketIds) return;
+
+            socketIds.delete(socket.id);
+            if (socketIds.size === 0) {
+                onlineUsers.delete(userId);
+                socket.broadcast.emit("user-offline", { userId });
+            }
         });
     });
 
