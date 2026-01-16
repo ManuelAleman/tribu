@@ -28,7 +28,7 @@ export async function authCallback(req: Request, res: Response, next: NextFuncti
         if (!user) {
             const clerkUser = await clerkClient.users.getUser(clerkId);
 
-            const primaryEmail = clerkUser.emailAddresses[0]?.emailAddress;
+            const primaryEmail = clerkUser.primaryEmailAddress?.emailAddress;
             if (!primaryEmail) {
                 res.status(400);
                 return next(new Error("User email not available from Clerk"));
