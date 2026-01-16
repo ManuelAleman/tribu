@@ -1,4 +1,4 @@
-import { Socket, Server as SockerServer } from "socket.io";
+import { Socket, Server as SocketServer } from "socket.io";
 import { Server as HttpServer } from "http";
 import { verifyToken } from "@clerk/express";
 import { Message } from "../models/Message";
@@ -16,7 +16,7 @@ export const initializeSocket = (httpServer: HttpServer) => {
         "http://localhost:8081",
         process.env.FRONTEND_URL!,
     ]
-    const io = new SockerServer(httpServer, {
+    const io = new SocketServer(httpServer, {
         cors: {
             origin: allowedOrigins,
         },
