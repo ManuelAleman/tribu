@@ -5,7 +5,7 @@ import { colors } from '@/lib/colors';
 import { useTheme } from '@/providers/ThemeProvider';
 import type { Chat } from '@/types';
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router'
+import { router, useRouter } from 'expo-router'
 import { View, Text, ActivityIndicator, FlatList, Pressable, Image } from 'react-native'
 
 const ChatsScreen = () => {
@@ -92,7 +92,7 @@ function Header() {
                     hitSlop={10}
                     accessibilityLabel='Start a new chat'
                     className="size-10 bg-primary rounded-full items-center justify-center active:opacity-80"
-                    onPress={() => { console.log("New Chat") }}
+                    onPress={() => router.push("/new-chat")}
                 >
                     <Ionicons name="create-outline" size={20} color="#FFFFFF" />
                 </Pressable>
@@ -141,7 +141,7 @@ function NoMessagesComponent() {
 
             <Pressable
                 className="bg-primary flex-row items-center px-6 py-3 rounded-full active:opacity-80"
-                onPress={() => console.log("Start new chat")}
+                onPress={() => router.push("/new-chat")}
             >
                 <Ionicons name="chatbubble-ellipses-outline" size={18} color="#FFFFFF" />
                 <Text className="text-white font-semibold text-base ml-2">

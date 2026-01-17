@@ -30,7 +30,7 @@ const ChatItem = ({ chat, onPress }: { chat: Chat, onPress: () => void }) => {
                 )}
             </View>
 
-            <View className='flex-1 ml-4'>
+            <View className='flex-1 ml-4 border-b border-surface-muted dark:border-surface-muted-dark pb-3'>
                 <View className='flex-row items-center justify-between'>
                     <Text
                         className={`text-base font-medium ${hasUnread ? "text-primary" : "text-foreground dark:text-foreground-dark"}`}
@@ -63,6 +63,7 @@ const ChatItem = ({ chat, onPress }: { chat: Chat, onPress: () => void }) => {
                     )}
                 </View>
             </View>
+
         </Pressable>
     )
 }
