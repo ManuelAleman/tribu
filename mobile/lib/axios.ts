@@ -1,47 +1,55 @@
 import axios from "axios";
 import { useAuth } from "@clerk/clerk-expo";
-import { useEffect } from "react";
+import { useCallback } from "react";
 
-const API_URL = "https://tribu-55z2i.sevalla.app/api";
+const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
 const api = axios.create({
     baseURL: API_URL,
-    headers: {
-        "Content-Type": "application/json",
+    headers: { "Content-Type": "application/json" },
+});
+
+api.interceptors.response.use(
+    (response) => response,
+    (error) => {
+        if (error.response) {
+            console.error(
+                `[API ERROR] ${error.config?.method?.toUpperCase()} ${error.config?.url}`,
+                {
+                    status: error.response.status,
+                    data: error.response.data,
+                }
+            );
+        } else if (error.request) {
+            console.warn("[API ERROR] No response from server", {
+                endpoint: error.config?.url,
+                method: error.config?.method,
+            });
+        } else {
+            console.error("[API ERROR] Unknown error", error.message);
+        }
+
+        return Promise.reject(error);
     }
-})
+);
 
 export const useApi = () => {
     const { getToken } = useAuth();
 
-    useEffect(() => {
-        const requestIntercept = api.interceptors.request.use(async (config) => {
+    const apiWithAuth = useCallback(
+        async <T>(config: Parameters<typeof api.request>[0]) => {
             const token = await getToken();
-            if (token) {
-                config.headers.Authorization = `Bearer ${token}`;
-            }
-            return config;
-        })
 
-        const responseIntercept = api.interceptors.response.use(
-            (response) => response,
-            (error) => {
-                if (error.response) {
-                    console.error("Error response", error.response.data);
-                }
-                else if (error.request) {
-                    console.error("No response from server", error);
-                }
+            return api.request<T>({
+                ...config,
+                headers: {
+                    ...config.headers,
+                    ...(token && { Authorization: `Bearer ${token}` }),
+                },
+            });
+        },
+        [getToken]
+    );
 
-                return Promise.reject(error);
-            }
-        )
-
-        return () => {
-            api.interceptors.request.eject(requestIntercept);
-            api.interceptors.response.eject(responseIntercept);
-        }
-    }, [getToken]);
-
-    return api;
-}
+    return { api, apiWithAuth };
+};
