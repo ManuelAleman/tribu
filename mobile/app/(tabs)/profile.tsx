@@ -1,68 +1,138 @@
 import { Text, ScrollView, Pressable, View } from 'react-native'
-import { useAuth } from '@clerk/clerk-expo'
+import { useAuth, useUser } from '@clerk/clerk-expo'
 import { useTheme } from '@/providers/ThemeProvider'
-import { Ionicons } from '@expo/vector-icons'
-
-type ThemeOption = "light" | "dark" | "system";
-
-const themeOptions: { value: ThemeOption; label: string; icon: keyof typeof Ionicons.glyphMap }[] = [
-    { value: "light", label: "Light", icon: "sunny" },
-    { value: "dark", label: "Dark", icon: "moon" },
-    { value: "system", label: "System", icon: "phone-portrait" },
-];
+import { Image } from 'expo-image';
+import { Ionicons } from '@expo/vector-icons';
+import { MENU_SECTIONS } from '@/lib/menuSettings';
+import { colors } from '@/lib/colors';
+import { useState } from 'react';
+import { ThemeSheet } from '@/components/ThemeSheet';
 
 const ProfileScreen = () => {
     const { signOut } = useAuth();
-    const { theme, setTheme, resolvedTheme } = useTheme();
+    const { user } = useUser();
+    const { theme, resolvedTheme } = useTheme();
+    const themeColors = colors[resolvedTheme];
+    const [themeSheetVisible, setThemeSheetVisible] = useState(false);
+
+    const themeLabel = theme === "light" ? "Light" : theme === "dark" ? "Dark" : "System";
+
+    const handleMenuPress = (action?: string) => {
+        if (action === "theme") {
+            setThemeSheetVisible(true);
+        }
+    };
+
+    const getItemValue = (item: typeof MENU_SECTIONS[number]["items"][number]) => {
+        if ("action" in item && item.action === "theme") {
+            return themeLabel;
+        }
+        return "value" in item ? item.value : undefined;
+    };
 
     return (
-        <ScrollView
-            className='flex-1 bg-background dark:bg-background-dark'
-            contentInsetAdjustmentBehavior='automatic'
-        >
-            <View className="p-4">
-                <Text className='text-foreground dark:text-foreground-dark text-2xl font-bold mb-6'>
-                    Settings
-                </Text>
+        <>
+            <ScrollView
+                className='flex-1 bg-background dark:bg-background-dark'
+                contentInsetAdjustmentBehavior='automatic'
+                contentContainerStyle={{
+                    paddingHorizontal: 20,
+                    paddingTop: 20,
+                    paddingBottom: 40,
+                }}
+                showsVerticalScrollIndicator={false}
+            >
+                <View className='items-center'>
+                    <View className='relative'>
+                        <View className="rounded-full border-2 border-primary p-0.5">
+                            <Image
+                                source={user?.imageUrl}
+                                style={{ width: 100, height: 100, borderRadius: 999 }}
+                            />
+                        </View>
 
-                <View className="bg-surface dark:bg-surface-dark rounded-xl p-4 mb-4">
-                    <Text className="text-foreground dark:text-foreground-dark font-semibold mb-3">
-                        Appearance
+                        <Pressable
+                            className="absolute bottom-1 right-1 w-8 h-8 bg-primary rounded-full items-center justify-center border-2 border-background dark:border-background-dark active:opacity-80"
+                            hitSlop={10}
+                        >
+                            <Ionicons name="camera" size={16} color="#FFFFFF" />
+                        </Pressable>
+                    </View>
+
+                    <Text className="text-2xl font-bold text-foreground dark:text-foreground-dark mt-4">
+                        {user?.firstName} {user?.lastName}
                     </Text>
-                    <View className="flex-row gap-2">
-                        {themeOptions.map((option) => (
-                            <Pressable
-                                key={option.value}
-                                onPress={() => setTheme(option.value)}
-                                className={`flex-1 py-3 rounded-lg items-center ${theme === option.value
-                                    ? "bg-primary"
-                                    : "bg-surface-muted dark:bg-surface-muted-dark"
-                                    }`}
-                            >
-                                <Ionicons
-                                    name={option.icon}
-                                    size={20}
-                                    color={theme === option.value ? "#FFFFFF" : (resolvedTheme === "dark" ? "#A0A0A5" : "#71717A")}
-                                />
-                                <Text className={`mt-1 text-xs font-medium ${theme === option.value
-                                    ? "text-white"
-                                    : "text-muted-foreground dark:text-muted-foreground-dark"
-                                    }`}>
-                                    {option.label}
-                                </Text>
-                            </Pressable>
-                        ))}
+
+                    <Text className="text-muted-foreground dark:text-muted-foreground-dark mt-1">
+                        {user?.emailAddresses[0]?.emailAddress}
+                    </Text>
+
+                    <View className="flex-row items-center mt-3 bg-green-500/20 px-3 py-1.5 rounded-full">
+                        <View className="w-2 h-2 bg-green-500 rounded-full mr-2" />
+                        <Text className="text-green-500 text-sm font-medium">Online</Text>
                     </View>
                 </View>
 
+                {MENU_SECTIONS.map((section) => (
+                    <View key={section.title} className="mt-8">
+                        <Text className="text-muted-foreground dark:text-muted-foreground-dark text-xs font-semibold uppercase tracking-wider mb-3 ml-1">
+                            {section.title}
+                        </Text>
+                        <View className="bg-surface-card dark:bg-surface-card-dark rounded-2xl overflow-hidden">
+                            {section.items.map((item, index) => (
+                                <Pressable
+                                    key={item.label}
+                                    onPress={() => handleMenuPress("action" in item ? item.action : undefined)}
+                                    className={`flex-row items-center px-4 py-3.5 active:opacity-70 ${index < section.items.length - 1
+                                        ? "border-b border-surface-muted dark:border-surface-muted-dark"
+                                        : ""
+                                        }`}
+                                >
+                                    <View
+                                        className="w-9 h-9 rounded-xl items-center justify-center"
+                                        style={{ backgroundColor: `${item.color}20` }}
+                                    >
+                                        <Ionicons name={item.icon as any} size={20} color={item.color} />
+                                    </View>
+                                    <Text className="flex-1 ml-3 text-foreground dark:text-foreground-dark font-medium">
+                                        {item.label}
+                                    </Text>
+                                    {getItemValue(item) && (
+                                        <Text className="text-muted-foreground dark:text-muted-foreground-dark text-sm mr-1">
+                                            {getItemValue(item)}
+                                        </Text>
+                                    )}
+                                    <Ionicons
+                                        name="chevron-forward"
+                                        size={18}
+                                        color={themeColors.mutedForeground}
+                                    />
+                                </Pressable>
+                            ))}
+                        </View>
+                    </View>
+                ))}
+
                 <Pressable
+                    className="mt-8 bg-red-500/10 rounded-2xl py-4 items-center active:opacity-70 border border-red-500/20"
                     onPress={() => signOut()}
-                    className='bg-red-500/10 dark:bg-red-500/20 px-4 py-4 rounded-xl border border-red-500/20 active:bg-red-500/20'
                 >
-                    <Text className='text-red-500 font-semibold text-center'>Sign Out</Text>
+                    <View className="flex-row items-center">
+                        <Ionicons name="log-out-outline" size={20} color="#EF4444" />
+                        <Text className="ml-2 text-red-500 font-semibold">Log Out</Text>
+                    </View>
                 </Pressable>
-            </View>
-        </ScrollView>
+
+                <Text className="text-center text-muted-foreground dark:text-muted-foreground-dark text-xs mt-8">
+                    Version 1.0.0
+                </Text>
+            </ScrollView>
+
+            <ThemeSheet
+                visible={themeSheetVisible}
+                onClose={() => setThemeSheetVisible(false)}
+            />
+        </>
     )
 }
 

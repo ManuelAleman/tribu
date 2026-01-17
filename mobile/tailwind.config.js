@@ -19,7 +19,7 @@ module.exports = {
                     dark: "#1A1A1D",
                 },
                 "surface-card": {
-                    DEFAULT: "#FFFFFF",
+                    DEFAULT: "#F0F0F0",
                     dark: "#242428",
                 },
                 "surface-muted": {
