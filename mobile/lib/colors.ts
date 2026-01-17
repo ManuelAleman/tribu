@@ -3,7 +3,7 @@ export const colors = {
         background: "#FFFFFF",
         foreground: "#18181B",
         surface: "#F4F4F5",
-        surfaceCard: "#FFFFFF",
+        surfaceCard: "#F0F0F0",
         surfaceMuted: "#E4E4E7",
         mutedForeground: "#71717A",
         primary: "#7C3AED",
