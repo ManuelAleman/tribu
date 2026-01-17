@@ -10,7 +10,7 @@ import { View, Text, ActivityIndicator, FlatList, Pressable, Image } from 'react
 
 const ChatsScreen = () => {
     const router = useRouter();
-    const { data: chats, isLoading, error } = useChats();
+    const { data: chats, isLoading, error, refetch } = useChats();
 
     const { resolvedTheme } = useTheme();
     const themeColors = colors[resolvedTheme];
@@ -36,7 +36,7 @@ const ChatsScreen = () => {
             <ErrorState
                 title="Failed to load chats"
                 description="Please try again later"
-                onRetry={() => { console.log("Retry") }}
+                onRetry={() => { refetch() }}
             />
         )
     }
