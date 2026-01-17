@@ -57,7 +57,7 @@ export async function getOrCreateChat(req: AuthRequest, res: Response, next: Nex
 
         return res.json({
             _id: chat._id,
-            participantId: otherParticipant ?? null,
+            participant: otherParticipant ?? null,
             lastMessage: chat.lastMessage,
             lastMessageAt: chat.lastMessageAt,
             createdAt: chat.createdAt,
