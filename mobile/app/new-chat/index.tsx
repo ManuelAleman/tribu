@@ -8,9 +8,13 @@ import { useGetOrCreateChat } from '@/hooks/useChats'
 import { User } from '@/types'
 import UserItem from '@/components/UserItem'
 import { useThemeColors } from '@/lib/colors'
+import { useSocketStore } from '@/lib/socket'
 
 const NewChatScreen = () => {
     const theme = useThemeColors()
+
+
+    const { onlineUsers } = useSocketStore();
 
     const [searchQuery, setSearchQuery] = useState('');
 
@@ -125,7 +129,7 @@ const NewChatScreen = () => {
                                     <UserItem
                                         key={user._id}
                                         user={user}
-                                        isOnline={true}
+                                        isOnline={onlineUsers.has(user._id)}
                                         onPress={() => handleUserSelect(user)}
                                     />
                                 ))}

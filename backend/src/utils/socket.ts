@@ -2,14 +2,13 @@ import { Socket, Server as SocketServer } from "socket.io";
 import { Server as HttpServer } from "http";
 import { verifyToken } from "@clerk/express";
 import { Message } from "../models/Message";
-import { Chat } from "../models/Chat";
+import { Chat, type IChat } from "../models/Chat";
 import { User } from "../models/User";
 
 export const onlineUsers: Map<string, Set<string>> = new Map();
 
 export const initializeSocket = (httpServer: HttpServer) => {
     const allowedOrigins = [
-        "http://localhost:8081",
         process.env.FRONTEND_URL!,
     ]
     const io = new SocketServer(httpServer, {
@@ -118,7 +117,25 @@ export const initializeSocket = (httpServer: HttpServer) => {
             }
         });
 
-        socket.on("typing", async (data: { chatId: string }) => {
+        socket.on("typing", async (data: { chatId: string, isTyping: boolean }) => {
+            const typingPayload = {
+                userId,
+                chatId: data.chatId,
+                isTyping: data.isTyping,
+            };
+
+            socket.to(`chat:${data.chatId}`).emit("typing", typingPayload);
+            try {
+                const chat = await Chat.findById<IChat>(data.chatId);
+                if (chat) {
+                    const otherParticipantId = chat.participants.find((p) => p.toString() !== userId);
+                    if (otherParticipantId) {
+                        socket.to(`user:${otherParticipantId}`).emit("typing", typingPayload);
+                    }
+                }
+            } catch (error) {
+                console.error("Failed to emit typing", error);
+            }
         });
 
         socket.on("disconnect", () => {

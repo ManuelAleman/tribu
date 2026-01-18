@@ -7,6 +7,7 @@ import { ThemeProvider, useTheme } from "@/providers/ThemeProvider";
 import { colors } from "@/lib/colors";
 import { StatusBar } from "expo-status-bar";
 import AuthSync from "@/components/AuthSync";
+import SocketConnection from "@/components/SocketConnection";
 
 const queryClient = new QueryClient();
 
@@ -42,6 +43,7 @@ export default function RootLayout() {
     <ClerkProvider tokenCache={tokenCache}>
       <QueryClientProvider client={queryClient}>
         <AuthSync />
+        <SocketConnection />
         <ThemeProvider>
           <RootLayoutNav />
         </ThemeProvider>
