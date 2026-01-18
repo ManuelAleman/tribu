@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useApi } from "@/lib/axios";
-import type { Message } from "@/types";
+import type { MessagesResponse } from "@/types";
 
 export const useMessages = (chatId: string) => {
     const { apiWithAuth } = useApi();
@@ -8,7 +8,7 @@ export const useMessages = (chatId: string) => {
     return useQuery({
         queryKey: ["messages", chatId],
         queryFn: async () => {
-            const { data } = await apiWithAuth<Message[]>({
+            const { data } = await apiWithAuth<MessagesResponse>({
                 method: "GET",
                 url: `/messages/chat/${chatId}`,
             });

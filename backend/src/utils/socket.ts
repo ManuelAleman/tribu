@@ -147,6 +147,32 @@ export const initializeSocket = (httpServer: HttpServer) => {
             }
         });
 
+        socket.on("mark-read", async (data: { chatId: string }) => {
+            try {
+                const chat = await Chat.findOne({
+                    _id: data.chatId,
+                    participants: userId,
+                });
+
+                if (!chat) return;
+
+                const now = new Date();
+                chat.readStatus.set(userId, now);
+                await chat.save();
+
+                const otherParticipantId = chat.participants.find((p) => p.toString() !== userId);
+                if (otherParticipantId) {
+                    io.to(`user:${otherParticipantId}`).emit("messages-read", {
+                        chatId: data.chatId,
+                        readAt: now.toISOString(),
+                        readBy: userId,
+                    });
+                }
+            } catch (error) {
+                console.error("Failed to mark as read", error);
+            }
+        });
+
         socket.on("disconnect", () => {
             const socketIds = onlineUsers.get(userId);
             if (!socketIds) return;

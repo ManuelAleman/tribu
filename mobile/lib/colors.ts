@@ -25,7 +25,6 @@ export const colors = {
 
 export type ThemeColors = typeof colors.light;
 
-// Hook que retorna los colores del tema actual
 export function useThemeColors() {
     const { resolvedTheme } = useTheme();
     return resolvedTheme === "dark" ? colors.dark : colors.light;

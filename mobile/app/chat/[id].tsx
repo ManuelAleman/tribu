@@ -29,7 +29,10 @@ const ChatDetailScreen = () => {
     const inputRef = useRef<TextInput>(null);
 
     const { data: currentUser } = useCurrentUser();
-    const { data: messages, isLoading } = useMessages(chatId);
+    const { data: messagesData, isLoading } = useMessages(chatId);
+
+    const messages = messagesData?.messages;
+    const participantLastReadAt = messagesData?.participantLastReadAt;
 
     const { joinChat, leaveChat, sendMessage, sendTyping, isConnected, onlineUsers, typingUsers } = useSocketStore();
 
@@ -39,7 +42,9 @@ const ChatDetailScreen = () => {
     const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     useEffect(() => {
-        if (chatId && isConnected) joinChat(chatId);
+        if (chatId && isConnected) {
+            joinChat(chatId);
+        }
         return () => {
             if (chatId) leaveChat(chatId);
         }
@@ -186,11 +191,18 @@ const ChatDetailScreen = () => {
                             onContentSizeChange={() => scrollViewRef.current?.scrollToEnd({ animated: false })}
                         >
                             {messages.map((message, index) => {
-                                const senderId = (message.sender as MessageSender)._id;
+                                if (!message || !message.sender) return null;
+                                const senderId = typeof message.sender === 'string' ? message.sender : (message.sender as MessageSender)._id;
                                 const isFromMe = currentUser ? senderId === currentUser._id : false;
                                 const nextMessage = messages[index + 1];
-                                const nextSenderId = nextMessage ? (nextMessage.sender as MessageSender)._id : null;
+                                const nextSenderId = nextMessage?.sender 
+                                    ? (typeof nextMessage.sender === 'string' ? nextMessage.sender : (nextMessage.sender as MessageSender)._id) 
+                                    : null;
                                 const showTail = !nextMessage || nextSenderId !== senderId;
+                                
+                                const isRead = isFromMe && participantLastReadAt && message.createdAt
+                                    ? new Date(message.createdAt) <= new Date(participantLastReadAt)
+                                    : false;
 
                                 return (
                                     <MessageBubble
@@ -198,6 +210,7 @@ const ChatDetailScreen = () => {
                                         message={message}
                                         isFromMe={isFromMe}
                                         showTail={showTail}
+                                        isRead={isRead}
                                     />
                                 );
                             })}

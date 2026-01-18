@@ -4,15 +4,20 @@ import { Chat } from '@/types'
 import { Image } from 'expo-image';
 import { formatDistanceToNow } from 'date-fns';
 import { useSocketStore } from '@/lib/socket';
+import { Ionicons } from '@expo/vector-icons';
+import { useThemeColors } from '@/lib/colors';
 
 const ChatItem = ({ chat, onPress }: { chat: Chat, onPress: () => void }) => {
     const participant = chat.participant;
+    const theme = useThemeColors();
 
-    const { onlineUsers, typingUsers, unreadChats } = useSocketStore();
+    const { onlineUsers, typingUsers } = useSocketStore();
 
     const isOnline = onlineUsers.has(participant._id);
     const isTyping = typingUsers.get(chat._id) === participant._id;
-    const hasUnread = unreadChats.has(chat._id);
+    const hasUnread = chat.hasUnread;
+    const isLastMessageFromMe = chat.isLastMessageFromMe;
+    const isLastMessageRead = chat.isLastMessageRead;
 
     return (
         <Pressable
@@ -57,12 +62,22 @@ const ChatItem = ({ chat, onPress }: { chat: Chat, onPress: () => void }) => {
                             Typing...
                         </Text>
                     ) : (
-                        <Text
-                            className={`text-sm flex-1 mr-3 ${hasUnread ? "text-foreground dark:text-foreground-dark font-medium" : "text-muted-foreground dark:text-muted-foreground-dark"}`}
-                            numberOfLines={1}
-                        >
-                            {chat.lastMessage?.text || "No messages yet"}
-                        </Text>
+                        <View className='flex-row items-center flex-1 mr-3'>
+                            {isLastMessageFromMe && chat.lastMessage && (
+                                <Ionicons
+                                    name={isLastMessageRead ? "checkmark-done" : "checkmark"}
+                                    size={14}
+                                    color={isLastMessageRead ? "#FCD34D" : theme.mutedForeground}
+                                    style={{ marginRight: 4 }}
+                                />
+                            )}
+                            <Text
+                                className={`text-sm flex-1 ${hasUnread ? "text-foreground dark:text-foreground-dark font-medium" : "text-muted-foreground dark:text-muted-foreground-dark"}`}
+                                numberOfLines={1}
+                            >
+                                {chat.lastMessage?.text || "No messages yet"}
+                            </Text>
+                        </View>
                     )}
                 </View>
             </View>

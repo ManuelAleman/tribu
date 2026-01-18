@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { io, Socket } from "socket.io-client";
 import { QueryClient } from "@tanstack/react-query";
-import { Chat, Message, MessageSender } from "@/types";
+import { Chat, Message, MessageSender, MessagesResponse } from "@/types";
 
 const SOCKET_URL = process.env.EXPO_PUBLIC_SOCKET_URL!;
 
@@ -10,7 +10,6 @@ interface SocketStore {
     isConnected: boolean;
     onlineUsers: Set<string>;
     typingUsers: Map<string, string>;
-    unreadChats: Set<string>;
     currentChatId: string | null;
     queryClient: QueryClient | null;
 
@@ -29,7 +28,6 @@ export const useSocketStore = create<SocketStore>((set, get) => ({
     isConnected: false,
     onlineUsers: new Set(),
     typingUsers: new Map(),
-    unreadChats: new Set(),
     currentChatId: null,
     queryClient: null,
     connect: (token: string, queryClient: QueryClient) => {
@@ -85,19 +83,23 @@ export const useSocketStore = create<SocketStore>((set, get) => ({
         });
 
         socket.on("new-message", (message: Message) => {
-            const senderId = (message.sender as MessageSender)._id;
+            if (!message || !message.sender) return;
+            const senderId = typeof message.sender === 'string' ? message.sender : (message.sender as MessageSender)._id;
             const { currentChatId } = get();
 
-            queryClient.setQueryData<Message[]>(["messages", message.chat], (old) => {
-                if (!old) return [message];
-                const filtered = old.filter((m) => !m._id.startsWith("temp-"));
-                if (filtered.some((m) => m._id === message._id)) return filtered;
-                return [...filtered, message];
+            queryClient.setQueryData<MessagesResponse>(["messages", message.chat], (old) => {
+                if (!old) return { messages: [message], participantLastReadAt: null };
+                const filtered = old.messages.filter((m) => !m._id.startsWith("temp-"));
+                if (filtered.some((m) => m._id === message._id)) return { ...old, messages: filtered };
+                return { ...old, messages: [...filtered, message] };
             });
 
             queryClient.setQueryData<Chat[]>(["chats"], (oldChats) => {
-                return oldChats?.map((chat) => {
+                if (!oldChats) return oldChats;
+                return oldChats.map((chat) => {
                     if (chat._id === message.chat) {
+                        const isFromOther = chat.participant && senderId === chat.participant._id;
+                        const isUnread = currentChatId !== message.chat && isFromOther;
                         return {
                             ...chat,
                             lastMessage: {
@@ -107,20 +109,17 @@ export const useSocketStore = create<SocketStore>((set, get) => ({
                                 createdAt: message.createdAt,
                             },
                             lastMessageAt: message.createdAt,
+                            hasUnread: isUnread ? true : chat.hasUnread,
+                            isLastMessageFromMe: !isFromOther,
+                            isLastMessageRead: false,
                         };
                     }
                     return chat;
                 });
             });
 
-            if (currentChatId !== message.chat) {
-                const chats = queryClient.getQueryData<Chat[]>(["chats"]);
-                const chat = chats?.find((c) => c._id === message.chat);
-                if (chat?.participant && senderId === chat.participant._id) {
-                    set((state) => ({
-                        unreadChats: new Set([...state.unreadChats, message.chat]),
-                    }));
-                }
+            if (currentChatId === message.chat && senderId !== currentChatId) {
+                socket.emit("mark-read", { chatId: message.chat });
             }
 
             set((state) => {
@@ -142,6 +141,23 @@ export const useSocketStore = create<SocketStore>((set, get) => ({
             });
         });
 
+        socket.on("messages-read", ({ chatId, readAt }: { chatId: string, readAt: string, readBy: string }) => {
+            queryClient.setQueryData<MessagesResponse>(["messages", chatId], (old) => {
+                if (!old) return old;
+                return { ...old, participantLastReadAt: readAt };
+            });
+
+            queryClient.setQueryData<Chat[]>(["chats"], (oldChats) => {
+                if (!oldChats) return oldChats;
+                return oldChats.map((chat) => {
+                    if (chat._id === chatId && chat.isLastMessageFromMe) {
+                        return { ...chat, isLastMessageRead: true };
+                    }
+                    return chat;
+                });
+            });
+        });
+
         set({ socket, queryClient });
 
     },
@@ -151,15 +167,23 @@ export const useSocketStore = create<SocketStore>((set, get) => ({
         set({ socket: null, isConnected: false });
     },
     joinChat: (chatId: string) => {
-        const { socket } = get();
-        set((state) => {
-            const unreadChats = new Set(state.unreadChats);
-            unreadChats.delete(chatId);
-            return { currentChatId: chatId, unreadChats: unreadChats };
-        });
+        const { socket, queryClient } = get();
+        set({ currentChatId: chatId });
 
         if (socket?.connected) {
             socket.emit("join-chat", chatId);
+            socket.emit("mark-read", { chatId });
+            
+            if (queryClient) {
+                queryClient.setQueryData<Chat[]>(["chats"], (oldChats) => {
+                    return oldChats?.map((chat) => {
+                        if (chat._id === chatId) {
+                            return { ...chat, hasUnread: false };
+                        }
+                        return chat;
+                    });
+                });
+            }
         }
     },
     leaveChat: (chatId) => {
@@ -183,9 +207,9 @@ export const useSocketStore = create<SocketStore>((set, get) => ({
             updatedAt: new Date().toISOString(),
         }
 
-        queryClient.setQueryData<Message[]>(["messages", chatId], (old) => {
-            if (!old) return [optimisticMessage];
-            return [...old, optimisticMessage];
+        queryClient.setQueryData<MessagesResponse>(["messages", chatId], (old) => {
+            if (!old) return { messages: [optimisticMessage], participantLastReadAt: null };
+            return { ...old, messages: [...old.messages, optimisticMessage] };
         });
 
         socket.emit("send-message", { chatId, text });
@@ -194,9 +218,9 @@ export const useSocketStore = create<SocketStore>((set, get) => ({
             if (__DEV__) {
                 console.error("Failed to send message", error.message);
             }
-            queryClient.setQueryData<Message[]>(["messages", chatId], (old) => {
-                if (!old) return [];
-                return old.filter((m) => m._id !== tempId);
+            queryClient.setQueryData<MessagesResponse>(["messages", chatId], (old) => {
+                if (!old) return { messages: [], participantLastReadAt: null };
+                return { ...old, messages: old.messages.filter((m) => m._id !== tempId) };
             });
             socket.off("socket-error", errorHandler);
         };
@@ -217,7 +241,6 @@ export const useSocketStore = create<SocketStore>((set, get) => ({
             isConnected: false,
             onlineUsers: new Set(),
             typingUsers: new Map(),
-            unreadChats: new Set(),
             currentChatId: null,
             queryClient: null,
         });

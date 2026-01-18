@@ -22,7 +22,15 @@ export async function getMessages(req: AuthRequest, res: Response, next: NextFun
             .populate("sender", "name email avatar")
             .sort({ createdAt: 1 });
 
-        res.json(messages);
+        const otherParticipantId = chat.participants.find(p => p.toString() !== userId);
+        const participantLastReadAt = otherParticipantId 
+            ? chat.readStatus?.get(otherParticipantId.toString()) || null
+            : null;
+
+        res.json({
+            messages,
+            participantLastReadAt,
+        });
     } catch (error) {
         res.status(500);
         next(error);
