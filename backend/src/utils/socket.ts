@@ -8,12 +8,21 @@ import { User } from "../models/User";
 export const onlineUsers: Map<string, Set<string>> = new Map();
 
 export const initializeSocket = (httpServer: HttpServer) => {
-    const allowedOrigins = [
-        process.env.FRONTEND_URL!,
-    ]
     const io = new SocketServer(httpServer, {
         cors: {
-            origin: allowedOrigins,
+            origin: (origin, callback) => {
+                if (!origin) return callback(null, true);
+
+                const allowedOrigins = [
+                    process.env.FRONTEND_URL,
+                ];
+
+                if (allowedOrigins.includes(origin)) {
+                    callback(null, true);
+                } else {
+                    callback(new Error("Not allowed by CORS"));
+                }
+            },
         },
     });
 

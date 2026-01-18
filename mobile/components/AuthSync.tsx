@@ -14,10 +14,14 @@ const AuthSync = () => {
 
             syncAuth(undefined, {
                 onSuccess: (data) => {
-                    console.log("Sync success for user: ", data.name);
+                    if (__DEV__) {
+                        console.log("Sync success for user: ", data.name);
+                    }
                 },
-                onError: (data) => {
-                    console.error("Sync error for user: ", data.name);
+                onError: (error) => {
+                    if (__DEV__) {
+                        console.error("Sync error: ", error.message);
+                    }
                 }
             })
         }
