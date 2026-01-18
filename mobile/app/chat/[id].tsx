@@ -1,4 +1,4 @@
-import { View, Text, ScrollView, Pressable, KeyboardAvoidingView, Platform, ActivityIndicator, TextInput } from 'react-native'
+import { View, Text, ScrollView, Pressable, KeyboardAvoidingView, Platform, TextInput, ActivityIndicator } from 'react-native'
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useCurrentUser } from '@/hooks/useAuth';
@@ -10,6 +10,7 @@ import { Image } from 'expo-image';
 import { useThemeColors } from '@/lib/colors';
 import { MessageSender } from '@/types';
 import MessageBubble from '@/components/MessageBubble';
+import { MessagesSkeleton } from '@/components/MessagesSkeleton';
 
 type ChatParams = {
     id: string;
@@ -163,12 +164,7 @@ const ChatDetailScreen = () => {
             >
                 <View className='flex-1 bg-background dark:bg-background-dark'>
                     {isLoading ? (
-                        <View className='flex-1 items-center justify-center'>
-                            <ActivityIndicator size="large" color={theme.primary} />
-                            <Text className='text-muted-foreground dark:text-muted-foreground-dark text-sm mt-3'>
-                                Loading messages...
-                            </Text>
-                        </View>
+                        <MessagesSkeleton />
                     ) : !messages || messages.length === 0 ? (
                         <View className='flex-1 items-center justify-center px-8'>
                             <View className="w-20 h-20 rounded-full bg-primary/10 items-center justify-center mb-4">
@@ -230,9 +226,10 @@ const ChatDetailScreen = () => {
                                 <TextInput
                                     placeholder="Message..."
                                     placeholderTextColor={theme.mutedForeground}
-                                    className="flex-1 text-foreground dark:text-foreground-dark text-[15px]"
+                                    className="flex-1 text-foreground dark:text-foreground-dark"
                                     multiline
                                     style={{
+                                        fontSize: 15,
                                         maxHeight: 100,
                                         textAlignVertical: 'center',
                                         paddingVertical: 10,
