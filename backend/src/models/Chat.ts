@@ -1,10 +1,5 @@
 import mongoose, { Schema, type Document } from "mongoose";
 
-export interface IReadStatus {
-    oderId: mongoose.Types.ObjectId;
-    lastReadAt: Date;
-}
-
 export interface IChat extends Document {
     participants: mongoose.Types.ObjectId[];
     lastMessage?: mongoose.Types.ObjectId;
