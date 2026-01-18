@@ -1,9 +1,11 @@
 import { useApi } from "@/lib/axios";
 import type { Chat } from "@/types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useCurrentUser } from "./useAuth";
 
 export const useChats = () => {
     const { apiWithAuth } = useApi();
+    const { data: currentUser } = useCurrentUser();
 
     return useQuery({
         queryKey: ["chats"],
@@ -14,6 +16,7 @@ export const useChats = () => {
             });
             return data;
         },
+        enabled: !!currentUser,
     })
 }
 

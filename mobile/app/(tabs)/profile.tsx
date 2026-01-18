@@ -7,6 +7,7 @@ import { MENU_SECTIONS } from '@/lib/menuSettings';
 import { colors } from '@/lib/colors';
 import { useState } from 'react';
 import { ThemeSheet } from '@/components/ThemeSheet';
+import { useQueryClient } from '@tanstack/react-query';
 
 const ProfileScreen = () => {
     const { signOut } = useAuth();
@@ -14,6 +15,12 @@ const ProfileScreen = () => {
     const { theme, resolvedTheme } = useTheme();
     const themeColors = colors[resolvedTheme];
     const [themeSheetVisible, setThemeSheetVisible] = useState(false);
+    const queryClient = useQueryClient();
+
+    const handleSignOut = () => {
+        queryClient.clear(); // Limpia todo el caché antes de cerrar sesión
+        signOut();
+    };
 
     const themeLabel = theme === "light" ? "Light" : theme === "dark" ? "Dark" : "System";
 
@@ -115,7 +122,7 @@ const ProfileScreen = () => {
 
                 <Pressable
                     className="mt-8 bg-red-500/10 rounded-2xl py-4 items-center active:opacity-70 border border-red-500/20"
-                    onPress={() => signOut()}
+                    onPress={handleSignOut}
                 >
                     <View className="flex-row items-center">
                         <Ionicons name="log-out-outline" size={20} color="#EF4444" />
