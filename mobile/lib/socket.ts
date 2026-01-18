@@ -44,17 +44,23 @@ export const useSocketStore = create<SocketStore>((set, get) => ({
         });
 
         socket.on("connect", () => {
-            console.log("Socket connected", socket.id);
+            if (__DEV__) {
+                console.log("Socket connected", socket.id);
+            }
             set({ isConnected: true });
         });
 
         socket.on("disconnect", () => {
-            console.log("Socket disconnected", socket.id);
+            if (__DEV__) {
+                console.log("Socket disconnected", socket.id);
+            }
             set({ isConnected: false });
         });
 
         socket.on("online-users", ({ userIds }: { userIds: string[] }) => {
-            console.log("Online users", userIds);
+            if (__DEV__) {
+                console.log("Online users", userIds);
+            }
             set({ onlineUsers: new Set(userIds) });
         });
 
@@ -73,7 +79,9 @@ export const useSocketStore = create<SocketStore>((set, get) => ({
         });
 
         socket.on("socket-error", (error: { message: string }) => {
-            console.error("Socket error:", error.message);
+            if (__DEV__) {
+                console.error("Socket error:", error.message);
+            }
         });
 
         socket.on("new-message", (message: Message) => {
@@ -183,7 +191,9 @@ export const useSocketStore = create<SocketStore>((set, get) => ({
         socket.emit("send-message", { chatId, text });
 
         const errorHandler = (error: { message: string }) => {
-            console.error("Failed to send message", error.message);
+            if (__DEV__) {
+                console.error("Failed to send message", error.message);
+            }
             queryClient.setQueryData<Message[]>(["messages", chatId], (old) => {
                 if (!old) return [];
                 return old.filter((m) => m._id !== tempId);
