@@ -1,9 +1,15 @@
 import mongoose, { Schema, type Document } from "mongoose";
 
+export interface IReadStatus {
+    oderId: mongoose.Types.ObjectId;
+    lastReadAt: Date;
+}
+
 export interface IChat extends Document {
     participants: mongoose.Types.ObjectId[];
     lastMessage?: mongoose.Types.ObjectId;
     lastMessageAt?: Date;
+    readStatus: Map<string, Date>;
     createdAt: Date;
     updatedAt: Date;
 }
@@ -24,6 +30,11 @@ const ChatSchema = new Schema<IChat>({
     lastMessageAt: {
         type: Date,
         default: Date.now
+    },
+    readStatus: {
+        type: Map,
+        of: Date,
+        default: new Map(),
     },
 },
     {

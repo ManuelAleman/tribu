@@ -18,7 +18,7 @@ const ProfileScreen = () => {
     const queryClient = useQueryClient();
 
     const handleSignOut = () => {
-        queryClient.clear(); // Limpia todo el caché antes de cerrar sesión
+        queryClient.clear();
         signOut();
     };
 

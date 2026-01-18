@@ -21,6 +21,11 @@ export interface Message {
     updatedAt: string;
 }
 
+export interface MessagesResponse {
+    messages: Message[];
+    participantLastReadAt: string | null;
+}
+
 export interface ChatLastMessage {
     _id: string;
     text: string;
@@ -34,4 +39,7 @@ export interface Chat {
     lastMessage: ChatLastMessage | null;
     lastMessageAt: string;
     createdAt: string;
+    hasUnread: boolean;
+    isLastMessageFromMe: boolean;
+    isLastMessageRead: boolean;
 }

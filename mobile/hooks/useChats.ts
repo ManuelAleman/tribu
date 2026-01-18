@@ -42,3 +42,39 @@ export const useGetOrCreateChat = () => {
         }
     })
 }
+
+export const useMarkChatAsRead = () => {
+    const { apiWithAuth } = useApi();
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: async (chatId: string) => {
+            const { data } = await apiWithAuth({
+                method: "POST",
+                url: `/chats/${chatId}/read`,
+            });
+            return data;
+        },
+        onMutate: async (chatId: string) => {
+            await queryClient.cancelQueries({ queryKey: ["chats"] });
+
+            const previousChats = queryClient.getQueryData<Chat[]>(["chats"]);
+
+            queryClient.setQueryData<Chat[]>(["chats"], (old) => {
+                return old?.map((chat) => {
+                    if (chat._id === chatId) {
+                        return { ...chat, hasUnread: false };
+                    }
+                    return chat;
+                });
+            });
+
+            return { previousChats };
+        },
+        onError: (_error, _chatId, context) => {
+            if (context?.previousChats) {
+                queryClient.setQueryData(["chats"], context.previousChats);
+            }
+        },
+    });
+}
