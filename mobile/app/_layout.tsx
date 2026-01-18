@@ -7,6 +7,12 @@ import { ThemeProvider, useTheme } from "@/providers/ThemeProvider";
 import { colors } from "@/lib/colors";
 import { StatusBar } from "expo-status-bar";
 import SocketConnection from "@/components/SocketConnection";
+import { configureReanimatedLogger, ReanimatedLogLevel } from 'react-native-reanimated';
+
+configureReanimatedLogger({
+  level: ReanimatedLogLevel.warn,
+  strict: false,
+});
 
 const queryClient = new QueryClient();
 

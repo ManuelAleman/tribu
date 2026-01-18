@@ -1,4 +1,5 @@
 import ChatItem from '@/components/ChatItem';
+import { ChatSkeleton } from '@/components/ChatSkeleton';
 import { ErrorState } from '@/components/ErrorState';
 import { useChats } from '@/hooks/useChats';
 import { colors } from '@/lib/colors';
@@ -6,29 +7,17 @@ import { useTheme } from '@/providers/ThemeProvider';
 import type { Chat } from '@/types';
 import { Ionicons } from '@expo/vector-icons';
 import { router, useRouter } from 'expo-router'
-import { View, Text, ActivityIndicator, FlatList, Pressable, Image } from 'react-native'
+import { View, Text, FlatList, Pressable, Image } from 'react-native'
 
 const ChatsScreen = () => {
     const router = useRouter();
-    const { data: chats, isLoading, error, refetch } = useChats();
+    const { data: chats, isLoading, isFetching, isPending, error, refetch } = useChats();
 
-    const { resolvedTheme } = useTheme();
-    const themeColors = colors[resolvedTheme];
+    const showLoading = isLoading || isPending || (isFetching && !chats);
 
 
-    if (isLoading) {
-        return (
-            <View
-                className='flex-1 justify-center items-center bg-background dark:bg-background-dark'
-            >
-                <ActivityIndicator
-                    size={"large"}
-                    color={themeColors.primaryLight}
-                >
-
-                </ActivityIndicator>
-            </View>
-        )
+    if (showLoading) {
+        return <ChatSkeleton />;
     }
 
     if (error) {
@@ -62,8 +51,8 @@ const ChatsScreen = () => {
                     <ChatItem chat={item} onPress={() => { handleChatPress(item) }} />
                 }
                 ListHeaderComponent={<Header />}
-                ListEmptyComponent={<NoMessagesComponent />}
-                ListFooterComponent={<Footer />}
+                ListEmptyComponent={showLoading ? null : <NoMessagesComponent />}
+                ListFooterComponent={chats && chats.length > 0 ? <Footer /> : null}
                 showsVerticalScrollIndicator={false}
                 contentInsetAdjustmentBehavior='automatic'
                 contentContainerStyle={{
