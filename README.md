@@ -119,7 +119,7 @@ bun run dev
 
 ```bash
 cd mobile
-npm install
+bun install
 ```
 
 Create `.env` file:
@@ -130,7 +130,7 @@ EXPO_PUBLIC_SOCKET_URL=http://localhost:3000
 
 Start the app:
 ```bash
-npm start
+bunx expo start
 ```
 
 > For more detailed instructions, check out the specific READMEs:
