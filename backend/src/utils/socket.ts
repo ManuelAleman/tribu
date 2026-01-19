@@ -92,7 +92,7 @@ export const initializeSocket = (httpServer: HttpServer) => {
                 const chat = await Chat.findOne({
                     _id: chatId,
                     participants: userId,
-                });
+                }).populate("participants", "name email avatar");
 
                 if (!chat) {
                     socket.emit("socket-error", {
@@ -100,6 +100,8 @@ export const initializeSocket = (httpServer: HttpServer) => {
                     });
                     return;
                 }
+
+                const isFirstMessage = !chat.lastMessage;
 
                 const message = await Message.create({
                     text,
@@ -116,7 +118,33 @@ export const initializeSocket = (httpServer: HttpServer) => {
                 io.to(`chat:${chatId}`).emit("new-message", message);
 
                 for (const participantId of chat.participants) {
-                    io.to(`user:${participantId}`).emit("new-message", message);
+                    const participantIdStr = participantId._id.toString();
+                    
+                    if (isFirstMessage && participantIdStr !== userId) {
+                        const sender = await User.findById(userId).select("name email avatar");
+                        io.to(`user:${participantIdStr}`).emit("new-chat", {
+                            _id: chat._id,
+                            participant: {
+                                _id: sender?._id,
+                                name: sender?.name,
+                                email: sender?.email,
+                                avatar: sender?.avatar,
+                            },
+                            lastMessage: {
+                                _id: message._id,
+                                text: message.text,
+                                sender: userId,
+                                createdAt: message.createdAt,
+                            },
+                            lastMessageAt: message.createdAt,
+                            createdAt: chat.createdAt,
+                            hasUnread: true,
+                            isLastMessageFromMe: false,
+                            isLastMessageRead: false,
+                        });
+                    } else {
+                        io.to(`user:${participantIdStr}`).emit("new-message", message);
+                    }
                 }
 
             } catch (error) {
