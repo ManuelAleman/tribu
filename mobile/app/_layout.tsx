@@ -6,8 +6,10 @@ import { ClerkProvider } from '@clerk/clerk-expo';
 import { ThemeProvider, useTheme } from "@/providers/ThemeProvider";
 import { colors } from "@/lib/colors";
 import { StatusBar } from "expo-status-bar";
-import SocketConnection from "@/components/SocketConnection";
+import { SocketConnection } from '@/components/ui';
 import { configureReanimatedLogger, ReanimatedLogLevel } from 'react-native-reanimated';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 
 configureReanimatedLogger({
   level: ReanimatedLogLevel.warn,
@@ -31,13 +33,6 @@ function RootLayoutNav() {
       }}>
         <Stack.Screen name="(auth)" options={{ animation: "fade" }} />
         <Stack.Screen name="(tabs)" options={{ animation: "fade" }} />
-        <Stack.Screen name="new-chat"
-          options={{
-            animation: "slide_from_bottom",
-            presentation: "modal",
-            gestureEnabled: true
-          }}
-        />
       </Stack>
     </>
   );
@@ -47,10 +42,14 @@ export default function RootLayout() {
   return (
     <ClerkProvider tokenCache={tokenCache}>
       <QueryClientProvider client={queryClient}>
-        <SocketConnection />
-        <ThemeProvider>
-          <RootLayoutNav />
-        </ThemeProvider>
+        <GestureHandlerRootView style={{ flex: 1 }}>
+          <BottomSheetModalProvider>
+            <SocketConnection />
+            <ThemeProvider>
+              <RootLayoutNav />
+            </ThemeProvider>
+          </BottomSheetModalProvider>
+        </GestureHandlerRootView>
       </QueryClientProvider>
     </ClerkProvider>
   );

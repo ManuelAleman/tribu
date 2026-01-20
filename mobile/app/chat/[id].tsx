@@ -9,8 +9,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { useThemeColors } from '@/lib/colors';
 import { MessageSender } from '@/types';
-import MessageBubble from '@/components/MessageBubble';
-import { MessagesSkeleton } from '@/components/MessagesSkeleton';
+import MessageBubble from '@/components/chat/MessageBubble';
+import { MessagesSkeleton } from '@/components/ui';
 
 type ChatParams = {
     id: string;
@@ -163,9 +163,10 @@ const ChatDetailScreen = () => {
             </View>
 
             <KeyboardAvoidingView
-                behavior={Platform.OS === "ios" ? "padding" : "height"}
-                keyboardVerticalOffset={0}
+                behavior={Platform.OS === "ios" ? "padding" : undefined}
+                keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0}
                 className="flex-1"
+                style={{ flex: 1 }}
             >
                 <View className='flex-1 bg-background dark:bg-background-dark'>
                     {isLoading ? (
