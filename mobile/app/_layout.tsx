@@ -39,8 +39,14 @@ function RootLayoutNav() {
 }
 
 export default function RootLayout() {
+  const publishableKey = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY;
+
+  if (!publishableKey) {
+    throw new Error('EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY is not set');
+  }
+
   return (
-    <ClerkProvider tokenCache={tokenCache}>
+    <ClerkProvider publishableKey={publishableKey} tokenCache={tokenCache}>
       <QueryClientProvider client={queryClient}>
         <GestureHandlerRootView style={{ flex: 1 }}>
           <BottomSheetModalProvider>
