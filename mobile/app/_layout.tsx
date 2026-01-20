@@ -10,6 +10,7 @@ import { SocketConnection } from '@/components/ui';
 import { configureReanimatedLogger, ReanimatedLogLevel } from 'react-native-reanimated';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
+import { KeyboardProvider } from 'react-native-keyboard-controller';
 
 configureReanimatedLogger({
   level: ReanimatedLogLevel.warn,
@@ -48,14 +49,16 @@ export default function RootLayout() {
   return (
     <ClerkProvider publishableKey={publishableKey} tokenCache={tokenCache}>
       <QueryClientProvider client={queryClient}>
-        <GestureHandlerRootView style={{ flex: 1 }}>
-          <BottomSheetModalProvider>
-            <SocketConnection />
-            <ThemeProvider>
-              <RootLayoutNav />
-            </ThemeProvider>
-          </BottomSheetModalProvider>
-        </GestureHandlerRootView>
+        <KeyboardProvider>
+          <GestureHandlerRootView style={{ flex: 1 }}>
+            <BottomSheetModalProvider>
+              <SocketConnection />
+              <ThemeProvider>
+                <RootLayoutNav />
+              </ThemeProvider>
+            </BottomSheetModalProvider>
+          </GestureHandlerRootView>
+        </KeyboardProvider>
       </QueryClientProvider>
     </ClerkProvider>
   );
