@@ -87,7 +87,6 @@ const NewChatSheet = forwardRef<BottomSheet, NewChatSheetProps>(({ onClose }, re
             index={-1}
             snapPoints={snapPoints}
             onChange={handleSheetChanges}
-            onClose={handleClose}
             enablePanDownToClose
             enableDynamicSizing={false}
             backdropComponent={renderBackdrop}
