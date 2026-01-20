@@ -5,17 +5,18 @@ import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
 import { MENU_SECTIONS } from '@/lib/menuSettings';
 import { colors } from '@/lib/colors';
-import { useState } from 'react';
+import { useRef, useCallback } from 'react';
 import { ThemeSheet } from '@/components/sheets';
 import { useQueryClient } from '@tanstack/react-query';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import BottomSheet from '@gorhom/bottom-sheet';
 
 const ProfileScreen = () => {
     const { signOut } = useAuth();
     const { user } = useUser();
     const { theme, resolvedTheme } = useTheme();
     const themeColors = colors[resolvedTheme];
-    const [themeSheetVisible, setThemeSheetVisible] = useState(false);
+    const themeSheetRef = useRef<BottomSheet>(null);
     const queryClient = useQueryClient();
 
     const handleSignOut = () => {
@@ -25,9 +26,17 @@ const ProfileScreen = () => {
 
     const themeLabel = theme === "light" ? "Light" : theme === "dark" ? "Dark" : "System";
 
+    const handleOpenThemeSheet = useCallback(() => {
+        themeSheetRef.current?.snapToIndex(0);
+    }, []);
+
+    const handleCloseThemeSheet = useCallback(() => {
+        themeSheetRef.current?.close();
+    }, []);
+
     const handleMenuPress = (action?: string) => {
         if (action === "theme") {
-            setThemeSheetVisible(true);
+            handleOpenThemeSheet();
         }
     };
 
@@ -137,8 +146,8 @@ const ProfileScreen = () => {
             </ScrollView>
 
             <ThemeSheet
-                visible={themeSheetVisible}
-                onClose={() => setThemeSheetVisible(false)}
+                ref={themeSheetRef}
+                onClose={handleCloseThemeSheet}
             />
         </SafeAreaView>
     )
