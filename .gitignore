@@ -1,0 +1,17 @@
+# Expo
+.expo/
+
+# Dependencies
+node_modules/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# macOS
+.DS_Store
+
+# IDE
+.vscode/
+.idea/
