@@ -8,6 +8,7 @@ import { colors } from '@/lib/colors';
 import { useState } from 'react';
 import { ThemeSheet } from '@/components/ThemeSheet';
 import { useQueryClient } from '@tanstack/react-query';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const ProfileScreen = () => {
     const { signOut } = useAuth();
@@ -38,9 +39,9 @@ const ProfileScreen = () => {
     };
 
     return (
-        <>
+        <SafeAreaView className='flex-1 bg-background dark:bg-background-dark' edges={['top']}>
             <ScrollView
-                className='flex-1 bg-background dark:bg-background-dark'
+                className='flex-1'
                 contentInsetAdjustmentBehavior='automatic'
                 contentContainerStyle={{
                     paddingHorizontal: 20,
@@ -139,7 +140,7 @@ const ProfileScreen = () => {
                 visible={themeSheetVisible}
                 onClose={() => setThemeSheetVisible(false)}
             />
-        </>
+        </SafeAreaView>
     )
 }
 

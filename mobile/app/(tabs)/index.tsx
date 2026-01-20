@@ -8,6 +8,7 @@ import type { Chat } from '@/types';
 import { Ionicons } from '@expo/vector-icons';
 import { router, useRouter } from 'expo-router'
 import { View, Text, FlatList, Pressable, Image } from 'react-native'
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const ChatsScreen = () => {
     const router = useRouter();
@@ -43,7 +44,7 @@ const ChatsScreen = () => {
     }
 
     return (
-        <View className='flex-1 bg-surface dark:bg-surface-dark'>
+        <SafeAreaView className='flex-1 bg-surface dark:bg-surface-dark' edges={['top']}>
             <FlatList
                 data={chats}
                 keyExtractor={item => item._id}
@@ -62,7 +63,7 @@ const ChatsScreen = () => {
                 }}
 
             />
-        </View>
+        </SafeAreaView>
     )
 }
 

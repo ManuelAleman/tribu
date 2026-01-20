@@ -82,6 +82,16 @@ export const useSocketStore = create<SocketStore>((set, get) => ({
             }
         });
 
+        socket.on("new-chat", (chat: Chat) => {
+            if (!chat || !chat._id) return;
+
+            queryClient.setQueryData<Chat[]>(["chats"], (oldChats) => {
+                if (!oldChats) return [chat];
+                if (oldChats.some((c) => c._id === chat._id)) return oldChats;
+                return [chat, ...oldChats];
+            });
+        });
+
         socket.on("new-message", (message: Message) => {
             if (!message || !message.sender) return;
             const senderId = typeof message.sender === 'string' ? message.sender : (message.sender as MessageSender)._id;
@@ -96,6 +106,10 @@ export const useSocketStore = create<SocketStore>((set, get) => ({
 
             queryClient.setQueryData<Chat[]>(["chats"], (oldChats) => {
                 if (!oldChats) return oldChats;
+                
+                const chatExists = oldChats.some((chat) => chat._id === message.chat);
+                if (!chatExists) return oldChats;
+                
                 return oldChats.map((chat) => {
                     if (chat._id === message.chat) {
                         const isFromOther = chat.participant && senderId === chat.participant._id;
