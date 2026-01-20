@@ -1,6 +1,6 @@
 import { View, Text, ScrollView, Pressable, KeyboardAvoidingView, Platform, TextInput, ActivityIndicator } from 'react-native'
 import React, { useCallback, useEffect, useRef, useState } from 'react'
-import { SafeAreaView } from 'react-native-safe-area-context'
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useCurrentUser } from '@/hooks/useAuth';
 import { useMessages } from '@/hooks/useMessages';
 import { router, useLocalSearchParams } from 'expo-router';
@@ -21,6 +21,7 @@ type ChatParams = {
 
 const ChatDetailScreen = () => {
     const theme = useThemeColors();
+    const insets = useSafeAreaInsets();
     const { id: chatId, participantId, name, avatar } = useLocalSearchParams<ChatParams>();
 
     const [messageText, setMessageText] = useState<string>("");
@@ -99,7 +100,7 @@ const ChatDetailScreen = () => {
     }
 
     return (
-        <SafeAreaView className='flex-1 bg-surface dark:bg-surface-dark' edges={["top", "bottom"]}>
+        <SafeAreaView className='flex-1 bg-surface dark:bg-surface-dark' edges={["top"]}>
             <View className="flex-row items-center px-4 py-3 bg-surface dark:bg-surface-dark border-b border-surface-muted dark:border-surface-muted-dark">
                 <Pressable
                     onPress={() => router.back()}
@@ -164,9 +165,7 @@ const ChatDetailScreen = () => {
 
             <KeyboardAvoidingView
                 behavior={Platform.OS === "ios" ? "padding" : undefined}
-                keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0}
                 className="flex-1"
-                style={{ flex: 1 }}
             >
                 <View className='flex-1 bg-background dark:bg-background-dark'>
                     {isLoading ? (
@@ -230,7 +229,10 @@ const ChatDetailScreen = () => {
                         </ScrollView>
                     )}
 
-                    <View className='px-3 pb-2 pt-2 bg-surface dark:bg-surface-dark border-t border-surface-muted dark:border-surface-muted-dark'>
+                    <View 
+                        className='px-3 pt-2 bg-surface dark:bg-surface-dark border-t border-surface-muted dark:border-surface-muted-dark'
+                        style={{ paddingBottom: Platform.OS === 'ios' ? Math.max(insets.bottom, 8) : 8 }}
+                    >
                         <View className='flex-row items-center gap-2'>
                             <Pressable className='w-10 h-10 rounded-full items-center justify-center bg-surface-card dark:bg-surface-card-dark active:opacity-70'>
                                 <Ionicons name="happy-outline" size={22} color={theme.mutedForeground} />
