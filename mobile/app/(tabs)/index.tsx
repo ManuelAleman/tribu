@@ -1,6 +1,6 @@
-import ChatItem from '@/components/ChatItem';
-import { ChatSkeleton } from '@/components/ChatSkeleton';
-import { ErrorState } from '@/components/ErrorState';
+import { ChatItem } from '@/components/chat';
+import { ChatSkeleton, ErrorState } from '@/components/ui';
+import { NewChatSheet } from '@/components/sheets';
 import { useChats } from '@/hooks/useChats';
 import { colors } from '@/lib/colors';
 import { useTheme } from '@/providers/ThemeProvider';
@@ -9,13 +9,23 @@ import { Ionicons } from '@expo/vector-icons';
 import { router, useRouter } from 'expo-router'
 import { View, Text, FlatList, Pressable, Image } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useRef, useCallback } from 'react';
+import BottomSheet from '@gorhom/bottom-sheet';
 
 const ChatsScreen = () => {
     const router = useRouter();
     const { data: chats, isLoading, isFetching, isPending, error, refetch } = useChats();
+    const bottomSheetRef = useRef<BottomSheet>(null);
 
     const showLoading = isLoading || isPending || (isFetching && !chats);
 
+    const handleOpenNewChat = useCallback(() => {
+        bottomSheetRef.current?.snapToIndex(0);
+    }, []);
+
+    const handleCloseNewChat = useCallback(() => {
+        bottomSheetRef.current?.close();
+    }, []);
 
     if (showLoading) {
         return <ChatSkeleton />;
@@ -51,8 +61,8 @@ const ChatsScreen = () => {
                 renderItem={({ item }) =>
                     <ChatItem chat={item} onPress={() => { handleChatPress(item) }} />
                 }
-                ListHeaderComponent={<Header />}
-                ListEmptyComponent={showLoading ? null : <NoMessagesComponent />}
+                ListHeaderComponent={<Header onNewChat={handleOpenNewChat} />}
+                ListEmptyComponent={showLoading ? null : <NoMessagesComponent onNewChat={handleOpenNewChat} />}
                 ListFooterComponent={chats && chats.length > 0 ? <Footer /> : null}
                 showsVerticalScrollIndicator={false}
                 contentInsetAdjustmentBehavior='automatic'
@@ -61,17 +71,15 @@ const ChatsScreen = () => {
                     paddingTop: 16,
                     paddingBottom: 24,
                 }}
-
             />
+            <NewChatSheet ref={bottomSheetRef} onClose={handleCloseNewChat} />
         </SafeAreaView>
     )
 }
 
 export default ChatsScreen;
 
-function Header() {
-    const router = useRouter();
-
+function Header({ onNewChat }: { onNewChat: () => void }) {
     return (
         <View className="pt-2 pb-4">
             <View className="flex-row items-center justify-between">
@@ -82,7 +90,7 @@ function Header() {
                     hitSlop={10}
                     accessibilityLabel='Start a new chat'
                     className="size-10 bg-primary rounded-full items-center justify-center active:opacity-80"
-                    onPress={() => router.push("/new-chat")}
+                    onPress={onNewChat}
                 >
                     <Ionicons name="create-outline" size={20} color="#FFFFFF" />
                 </Pressable>
@@ -111,7 +119,7 @@ function Footer() {
     );
 }
 
-function NoMessagesComponent() {
+function NoMessagesComponent({ onNewChat }: { onNewChat: () => void }) {
     return (
         <View className="flex-1 items-center justify-center py-16">
             <View className="mb-6">
@@ -131,7 +139,7 @@ function NoMessagesComponent() {
 
             <Pressable
                 className="bg-primary flex-row items-center px-6 py-3 rounded-full active:opacity-80"
-                onPress={() => router.push("/new-chat")}
+                onPress={onNewChat}
             >
                 <Ionicons name="chatbubble-ellipses-outline" size={18} color="#FFFFFF" />
                 <Text className="text-white font-semibold text-base ml-2">

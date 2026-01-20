@@ -6,7 +6,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { MENU_SECTIONS } from '@/lib/menuSettings';
 import { colors } from '@/lib/colors';
 import { useState } from 'react';
-import { ThemeSheet } from '@/components/ThemeSheet';
+import { ThemeSheet } from '@/components/sheets';
 import { useQueryClient } from '@tanstack/react-query';
 import { SafeAreaView } from 'react-native-safe-area-context';
 

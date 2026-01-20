@@ -9,8 +9,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { useThemeColors } from '@/lib/colors';
 import { MessageSender } from '@/types';
-import MessageBubble from '@/components/MessageBubble';
-import { MessagesSkeleton } from '@/components/MessagesSkeleton';
+import MessageBubble from '@/components/chat/MessageBubble';
+import { MessagesSkeleton } from '@/components/ui';
 
 type ChatParams = {
     id: string;
