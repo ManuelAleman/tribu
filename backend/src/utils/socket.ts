@@ -4,6 +4,7 @@ import { verifyToken } from "@clerk/express";
 import { Message } from "../models/Message";
 import { Chat, type IChat } from "../models/Chat";
 import { User } from "../models/User";
+import { sendPushNotification } from "./pushNotifications";
 
 export const onlineUsers: Map<string, Set<string>> = new Map();
 
@@ -119,8 +120,12 @@ export const initializeSocket = (httpServer: HttpServer) => {
 
                 for (const participantId of chat.participants) {
                     const participantIdStr = participantId._id.toString();
-                    
-                    if (isFirstMessage && participantIdStr !== userId) {
+
+                    if (participantIdStr === userId) continue;
+
+                    const isOnline = onlineUsers.has(participantIdStr);
+
+                    if (isFirstMessage) {
                         const sender = await User.findById(userId).select("name email avatar");
                         io.to(`user:${participantIdStr}`).emit("new-chat", {
                             _id: chat._id,
@@ -142,8 +147,33 @@ export const initializeSocket = (httpServer: HttpServer) => {
                             isLastMessageFromMe: false,
                             isLastMessageRead: false,
                         });
+
+                        if (!isOnline) {
+                            const recipient = await User.findById(participantIdStr);
+                            if (recipient?.expoPushToken) {
+                                await sendPushNotification(
+                                    recipient.expoPushToken,
+                                    sender?.name ?? "Nuevo mensaje",
+                                    text,
+                                    { chatId, messageId: message._id.toString() }
+                                );
+                            }
+                        }
                     } else {
                         io.to(`user:${participantIdStr}`).emit("new-message", message);
+
+                        if (!isOnline) {
+                            const sender = await User.findById(userId).select("name");
+                            const recipient = await User.findById(participantIdStr);
+                            if (recipient?.expoPushToken) {
+                                await sendPushNotification(
+                                    recipient.expoPushToken,
+                                    sender?.name ?? "Nuevo mensaje",
+                                    text,
+                                    { chatId, messageId: message._id.toString() }
+                                );
+                            }
+                        }
                     }
                 }
 

@@ -11,6 +11,7 @@ import { configureReanimatedLogger, ReanimatedLogLevel } from 'react-native-rean
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
+import { NotificationHandler } from '@/components/NotificationHandler';
 
 configureReanimatedLogger({
   level: ReanimatedLogLevel.warn,
@@ -53,6 +54,7 @@ export default function RootLayout() {
           <GestureHandlerRootView style={{ flex: 1 }}>
             <BottomSheetModalProvider>
               <SocketConnection />
+              <NotificationHandler />
               <ThemeProvider>
                 <RootLayoutNav />
               </ThemeProvider>
